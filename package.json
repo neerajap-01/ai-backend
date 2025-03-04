@@ -1,0 +1,30 @@
+{
+  "name": "ai-backend",
+  "version": "0.0.1",
+  "description": "This is backend for ai related projects",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "dev": "source .env && nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neerajap-01/ai-backend.git"
+  },
+  "author": "Neeraj Pal (neeraj@neerajpal.dev)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/neerajap-01/ai-backend/issues"
+  },
+  "homepage": "https://github.com/neerajap-01/ai-backend#readme",
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}
