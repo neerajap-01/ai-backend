@@ -7,33 +7,45 @@ import { dirname } from 'path';
 
 // Get the directory path in a way that works in both ESM and CJS
 const getCurrentDirPath = () => {
-  if (typeof require !== 'undefined') {
-    // CJS environment
+  try {
+    return dirname(fileURLToPath(import.meta.url));
+  } catch (error) {
     return process.cwd();
   }
-  // ESM environment
-  return dirname(fileURLToPath(import.meta.url));
 };
 
 const __dirname = getCurrentDirPath();
 
-// For Netlify Functions, use tmp directory for uploads
+// For Netlify Functions, always use tmp directory for uploads
 const uploadDir = process.env.NETLIFY 
   ? '/tmp/uploads' 
-  : path.join(dirname(dirname(__dirname)), 'uploads');
+  : path.join(process.cwd(), 'uploads');
 
-// Create uploads directory if it doesn't exist
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Safely create directory
+const createUploadDir = () => {
+  try {
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    console.log(`📁 Upload directory created successfully at: ${uploadDir}`);
+  } catch (error) {
+    console.error(`❌ Error creating upload directory: ${error.message}`);
+    // Fallback to /tmp if main directory creation fails
+    if (!process.env.NETLIFY) {
+      const tmpDir = '/tmp/uploads';
+      fs.mkdirSync(tmpDir, { recursive: true });
+      return tmpDir;
+    }
+  }
+  return uploadDir;
+};
 
-// Log the path to help with debugging
-console.log(`📁 Upload directory path: ${uploadDir}`);
+const finalUploadDir = createUploadDir();
 
 // Configure storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, uploadDir);
+    cb(null, finalUploadDir);
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);

@@ -3,7 +3,7 @@
   node_bundler = "esbuild"
 
 [functions]
-  external_node_modules = ["express"]
+  external_node_modules = ["express", "multer"]
   node_bundler = "esbuild"
 
 [build.environment]
