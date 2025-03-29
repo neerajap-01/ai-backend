@@ -5,12 +5,24 @@ import { env } from '../config/keys.js';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
-// Get the directory path using ES modules approach
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// Get the directory path in a way that works in both ESM and CJS
+const getCurrentDirPath = () => {
+  if (typeof require !== 'undefined') {
+    // CJS environment
+    return process.cwd();
+  }
+  // ESM environment
+  return dirname(fileURLToPath(import.meta.url));
+};
 
-// Create uploads directory with absolute path
-const uploadDir = path.join(dirname(dirname(__dirname)), 'uploads');
+const __dirname = getCurrentDirPath();
+
+// For Netlify Functions, use tmp directory for uploads
+const uploadDir = process.env.NETLIFY 
+  ? '/tmp/uploads' 
+  : path.join(dirname(dirname(__dirname)), 'uploads');
+
+// Create uploads directory if it doesn't exist
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }

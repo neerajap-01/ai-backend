@@ -12,7 +12,7 @@ router.use(cors())
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
 
-app.use('/api/', rootRouter);
+router.use('/', rootRouter);
 
 router.get('/health', (req, res) => {
   res.status(200).send({
@@ -26,5 +26,7 @@ router.get('/health', (req, res) => {
 // app.listen(PORT, () => {
 //   console.log(`🚀 Server is running on port ${PORT} 🚀`);
 // });
+
+app.use('/api/', router);
 
 export const handler = serverless(app);
