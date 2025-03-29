@@ -66,6 +66,7 @@ web_modules/
 
 # Optional npm cache directory
 .npm
+.netlify
 
 # Optional eslint cache
 .eslintcache
