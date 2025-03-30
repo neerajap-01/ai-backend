@@ -1,9 +1,10 @@
 import express from 'express';
-import { createEmbedding } from '../controllers/openai.controller.js';
+import { createSingleFileEmbedding, createMultipleFileEmbedding } from '../controllers/openai.controller.js';
 import uploads from '../utils/upload.util.js'
 
 const router = express.Router();
 
-router.post('/openai', uploads.single('doc'), createEmbedding);
+router.post('/single/openai', uploads.single('doc'), createSingleFileEmbedding);
+router.post('/multiple/openai', uploads.any('docs'), createMultipleFileEmbedding);
 
 export default router;

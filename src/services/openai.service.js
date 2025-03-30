@@ -1,7 +1,13 @@
 import { checkIfNamespaceExists, getPineconeClient } from "../config/pineconeClient.js";
-import { chunkedPDFs } from "../utils/pdfLoader.util.js";
+import { chunkedPDFs, getFilename } from "../utils/pdfLoader.util.js";
 import { embedAndStoreDocument } from "../helpers/openai.helper.js"
 import fs from "fs";
+import { env } from "../config/keys.js";
+import { OpenAIEmbeddings } from "@langchain/openai";
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+
+const CHUNK_BATCH_SIZE = env.CHUNK_BATCH_SIZE ?? 10;
+const PINECONE_INDEX_NAME = env.PINECONE_INDEX_NAME;
 
 const createEmbedding = async (filePath, namespace) => {
   try {
@@ -60,6 +66,86 @@ const createEmbedding = async (filePath, namespace) => {
   }
 };
 
+const updateVectorDB = async (client, namespace, docs, progressCallback) => {
+  let callback;
+  let totalDocumentChunks;
+  let totalDocumentChunksUpseted;
+
+  const processDocument = async (client, namespace, doc) => {
+    const splitter = new RecursiveCharacterTextSplitter({
+      chunkSize: 1000,
+      chunkOverlap: 200,
+    });
+    const documentChunks = await splitter.splitText(doc.pageContent);
+    totalDocumentChunks = documentChunks.length;
+    totalDocumentChunksUpseted = 0;
+    const filename = getFilename(doc.metadata.source);
+    console.log(`Processing ${filename}...`);
+    let chunkBatchIndex = 0;
+    while(documentChunks.length > 0){
+        chunkBatchIndex++;
+        const chunkBatch = documentChunks.splice(0, CHUNK_BATCH_SIZE)
+        await processOneBatch(client, namespace, chunkBatch, chunkBatchIndex, filename)
+    }
+  }
+  
+  const processOneBatch = async (client, namespace, chunkBatch, chunkBatchIndex, filename) => {
+    try {
+      const embeddings = new OpenAIEmbeddings();
+      const cleanedChunks = chunkBatch.map(str => str.replace(/\n/g, ' '));
+      
+      // Get embeddings for the entire batch
+      const embeddingsBatch = await embeddings.embedDocuments(cleanedChunks);
+      
+      let vectorBatch = [];
+      for(let i = 0; i < chunkBatch.length; i++) {
+        const chunk = cleanedChunks[i];
+        const embedding = embeddingsBatch[i];
+  
+        const vector = {
+          id: `${filename}-${chunkBatchIndex}-${i}`,
+          values: embedding,
+          metadata: {
+            text: chunk,
+            source: filename
+          }
+        }
+        vectorBatch.push(vector);
+      }
+  
+      // Upsert vectors to Pinecone
+      const index = client.Index(PINECONE_INDEX_NAME).namespace(namespace);
+      await index.upsert(vectorBatch);
+      
+      totalDocumentChunksUpseted += vectorBatch.length;
+      if (callback) {
+        callback(filename, totalDocumentChunks, totalDocumentChunksUpseted, false);
+      }
+      vectorBatch = [];
+    } catch (error) {
+      console.error('Error processing batch:', error);
+      throw new Error('Failed to process document batch');
+    }
+  };
+
+  try {
+    callback = progressCallback;
+    totalDocumentChunks = 0;
+    totalDocumentChunksUpseted = 0;
+
+    for(const doc of docs){
+      await processDocument(client, namespace, doc)
+    }
+    if (callback !== undefined) {
+        callback("filename", totalDocumentChunks, totalDocumentChunksUpseted, true)
+    }
+  } catch (error) {
+    console.error("Error updating vector DB:", error);
+    throw new Error("Error updating vector DB");
+  }
+}
+
 export {
-  createEmbedding
+  createEmbedding,
+  updateVectorDB
 }

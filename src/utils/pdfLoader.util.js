@@ -24,6 +24,12 @@ const chunkedPDFs = async (filePath) => {
   }
 };
 
+const getFilename = (filename = '') => {
+  const docname = filename.substring(filename.lastIndexOf("/") + 1);
+  return docname.substring(0, docname.lastIndexOf(".")) || docname;
+}
+
 export {
   chunkedPDFs,
+  getFilename
 };
