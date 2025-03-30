@@ -10,7 +10,7 @@ app.use(cors())
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/', rootRouter);
+app.use('/api', rootRouter);
 
 app.get('/health', (req, res) => {
   res.status(200).send({

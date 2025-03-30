@@ -11,6 +11,7 @@ const projectEnv = {
   PINECONE_ENVIRONMENT: process.env.PINECONE_ENVIRONMENT,
   PINECONE_INDEX_NAME: process.env.PINECONE_INDEX_NAME,
   UPLOAD_FILESIZE_LIMIT: process.env.UPLOAD_FILESIZE_LIMIT,
+  CHUNK_BATCH_SIZE: process.env.CHUNK_BATCH_SIZE,
 }
 
 export const env = projectEnv;
