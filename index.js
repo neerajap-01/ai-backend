@@ -5,8 +5,19 @@ import { env } from './src/config/keys.js';
 
 const app = express();
 const PORT = env.PORT ?? 3000;
+const WHITELISTED_DOMAINS = env.WHITELISTED_DOMAINS?.split(',') ?? [];
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || WHITELISTED_DOMAINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+};
 
-app.use(cors()) 
+
+app.use(cors(corsOptions)) 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
