@@ -62,7 +62,7 @@ const shutdown = async (signal) => {
     });
     
     // Close database connections
-    await mongoDbClient.disconnect();
+    // await mongoDbClient.close();
     
     console.log('Graceful shutdown completed');
     process.exit(0);

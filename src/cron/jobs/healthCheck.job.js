@@ -1,4 +1,4 @@
-import { healthCheckers } from "../../utils/healthCheckers.utils.js";
+import { healthCheckers, notifyHealthStatus } from "../../utils/healthCheckers.utils.js";
 
 const healthCheckJob = async () => {
   try {
@@ -22,18 +22,29 @@ const healthCheckJob = async () => {
 
     if (hasIssues) {
       console.error('Service degradation detected!');
-      // TODO: Implement notification system
+      // Implemented notification system
+      const previousState = healthCheckJob.lastState;
+      healthCheckJob.lastState = hasIssues;
+
+      // Send notification only on state change or if it's the first check
+      if (previousState === undefined || previousState !== hasIssues) {
+        await notifyHealthStatus(healthStatus, hasIssues);
+      }
     }
 
     return healthStatus;
 
   } catch (error) {
     console.error('Health check job failed:', error.message);
-    return {
+    const errorStatus = {
       timestamp: new Date(),
       server: { status: 'DOWN', message: error.message },
       services: []
     };
+
+    // Notify on errors
+    await notifyHealthStatus(errorStatus, true);
+    return errorStatus;
   }
 };
 
