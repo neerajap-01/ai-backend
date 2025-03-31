@@ -58,11 +58,16 @@ const initPineconeClient = async () => {
 };
 
 const getPineconeClient = async () => {
-  if(!pineconeClientInstance) {
-    pineconeClientInstance = await initPineconeClient();
+  try {
+    if(!pineconeClientInstance) {
+      pineconeClientInstance = await initPineconeClient();
+    }
+  
+    return pineconeClientInstance;
+  } catch (error) {
+    console.error(`Failed to get Pinecone client: ${error}`);
+    throw new Error(`Failed to get Pinecone client: ${error}`);
   }
-
-  return pineconeClientInstance;
 }
 
 const checkIfNamespaceExists = async (client, namespace) => {

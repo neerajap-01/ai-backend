@@ -13,6 +13,8 @@ const projectEnv = {
   UPLOAD_FILESIZE_LIMIT: process.env.UPLOAD_FILESIZE_LIMIT,
   CHUNK_BATCH_SIZE: process.env.CHUNK_BATCH_SIZE,
   WHITELISTED_DOMAINS: process.env.WHITELISTED_DOMAINS,
+  MONGO_DB_URI: process.env.MONGO_DB_URI,
+  MONGO_DB_NAME: process.env.MONGO_DB_NAME,
 }
 
 export const env = projectEnv;
