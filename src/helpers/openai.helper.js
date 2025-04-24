@@ -23,10 +23,11 @@ const embedAndStoreDocument = async (
   }
 };
 
-const getOpenAIVectorStore = async (client, namespace) => {
+const getOpenAIVectorStore = async (client, pineconeIndex, namespace) => {
   try {
     const embeddings = new OpenAIEmbeddings();
-    const index = client.index(env.PINECONE_INDEX_NAME);
+    const pinconeIndexName = pineconeIndex ?? env.PINECONE_INDEX_NAME
+    const index = client.index(pinconeIndexName);
 
     const vectorStore = await PineconeStore.fromExistingIndex(embeddings, {
       pineconeIndex: index,
