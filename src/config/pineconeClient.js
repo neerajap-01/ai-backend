@@ -34,13 +34,13 @@ const createIndex = async (client, indexName) => {
   }
 };
 
-const initPineconeClient = async () => {
+const initPineconeClient = async (index) => {
   try {
     const client = new Pinecone({
       apiKey: env.PINECONE_API_KEY,
     });
 
-    const indexName = env.PINECONE_INDEX_NAME;
+    const indexName = index ?? env.PINECONE_INDEX_NAME;
 
     const { indexes } = await client.listIndexes();
 
@@ -57,10 +57,10 @@ const initPineconeClient = async () => {
   }
 };
 
-const getPineconeClient = async () => {
+const getPineconeClient = async (index) => {
   try {
     if(!pineconeClientInstance) {
-      pineconeClientInstance = await initPineconeClient();
+      pineconeClientInstance = await initPineconeClient(index);
     }
   
     return pineconeClientInstance;
