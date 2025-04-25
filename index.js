@@ -4,10 +4,14 @@ import rootRouter from './src/routes/root.routes.js';
 import { env } from './src/config/keys.js';
 import cronManager from './src/cron/manager.js';
 import mongoDbClient from './src/config/mongoDbClient.js';
+import cookieParser from 'cookie-parser';
+import session from 'express-session';
+import passport from './src/config/passport.js';
 
 const app = express();
 const PORT = env.PORT ?? 3000;
 const WHITELISTED_DOMAINS = env.WHITELISTED_DOMAINS?.split(',') ?? [];
+
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin || WHITELISTED_DOMAINS.includes(origin)) {
@@ -16,8 +20,11 @@ const corsOptions = {
       callback(new Error('Not allowed by CORS'));
     }
   },
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization']
 };
 
+app.options('*', cors(corsOptions)); // Preflight request handling
 app.use(cors(corsOptions)) 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -31,7 +38,42 @@ mongoDbClient
     console.error('MongoDB connection error:', error);
   });
 
+app.use(cookieParser());
+
+// Session configuration
+app.use(session({
+  secret: env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use('/api', rootRouter);
+
+app.use((err, req, res, next) => {
+  if (err.name === 'UnauthorizedError') {
+    return res.status(401).json({
+      statusCode: 401,
+      error: 1,
+      message: 'Authentication required',
+      data: null
+    });
+  }
+
+  res.status(500).json({
+    statusCode: 500,
+    error: 1,
+    message: err.message || 'Internal server error',
+    data: null
+  });
+});
 
 app.get('/health', (req, res) => {
   res.status(200).send({

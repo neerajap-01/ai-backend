@@ -23,6 +23,14 @@ const projectEnv = {
   EMAIL_USER: process.env.EMAIL_USER,
   EMAIL_PASSWORD: process.env.EMAIL_PASSWORD,
   ALERT_EMAIL_SENDER: process.env.ALERT_EMAIL_SENDER,
+  CLIENT_URL: process.env.CLIENT_URL,
+  JWT_SECRET: process.env.JWT_SECRET,
+  SESSION_SECRET: process.env.SESSION_SECRET,
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
+  GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
+  APP_NAME: process.env.APP_NAME,
 }
 
 export const env = projectEnv;
