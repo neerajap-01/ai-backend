@@ -66,9 +66,10 @@ passport.use(new GoogleStrategy({
         googleId: profile.id,
         email: profile.emails[0].value,
         name: profile.displayName,
-        avatar: profile.photos[0].value,
-        authProvider: 'google',
-        verified: true
+        password: profile.id, // Use Google ID as password for social login
+        profilePicture: profile.photos[0].value,
+        authType: 'google',
+        isVerified: true
       });
     }
     
@@ -97,9 +98,10 @@ passport.use(new GitHubStrategy({
         githubId: profile.id,
         email: email,
         name: profile.displayName || profile.username,
-        avatar: profile.photos && profile.photos[0].value,
-        authProvider: 'github',
-        verified: true
+        password: profile.id, // Use GitHub ID as password for social login
+        profilePicture: profile.photos && profile.photos[0].value,
+        authType: 'github',
+        isVerified: true
       });
     }
     

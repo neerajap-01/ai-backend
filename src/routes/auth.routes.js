@@ -22,7 +22,7 @@ router.get('/google/callback', passport.authenticate('google', {
     sameSite: 'strict',         // Helps prevent CSRF attacks
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days - match token expiration
   });
-  res.redirect(`${env.CLIENT_URL}/auth/success?source=google`);
+  res.redirect(`${env.CLIENT_URL}/auth/success?source=google&token=${token}`);
 });
 
 // GitHub Auth Routes
@@ -37,7 +37,7 @@ router.get('/github/callback', passport.authenticate('github', { session: false 
     sameSite: 'strict',         // Helps prevent CSRF attacks
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days - match token expiration
   });
-  res.redirect(`${env.CLIENT_URL}/auth/success?source=github`);
+  res.redirect(`${env.CLIENT_URL}/auth/success?source=github&token=${token}`);
 });
 
 // Local Auth Routes
