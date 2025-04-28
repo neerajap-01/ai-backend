@@ -164,6 +164,12 @@ const loginController = async (req, res, next) => {
     })(req, res, next);
   } catch (error) {
     console.log("Error in loginController:", error);
+    return res.status(500).json({
+      statusCode: 500,
+      error: 1,
+      message: 'Internal server error',
+      data: null
+    });
   }
 };
 
