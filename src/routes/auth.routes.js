@@ -15,13 +15,22 @@ router.get('/google/callback', passport.authenticate('google', {
   failureRedirect: `${env.CLIENT_URL}/auth/error?source=google` 
 }), (req, res) => {
   const token = generateToken(req.user);
-  // Set JWT token as HTTP-only cookie
-  res.cookie('auth_token', token, {
+  // Extract domain from CLIENT_URL if needed
+  // For localhost development, don't set domain at all
+  let cookieOptions = {
     httpOnly: true,
     secure: env.NODE_ENV === 'production', 
-    sameSite: 'strict',         // Helps prevent CSRF attacks
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days - match token expiration
-  });
+    sameSite: 'none',
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    path: '/' // Set path to root
+  };
+  
+  // Only add domain in production for cross-subdomain support
+  if (env.NODE_ENV === 'production' && env.CLIENT_URL) {``
+    cookieOptions.domain = env.CLIENT_URL;
+  }
+  // Set the cookie with fixed options
+  res.cookie('auth_token', token, cookieOptions);
   res.redirect(`${env.CLIENT_URL}/auth/success?source=google&token=${token}`);
 });
 
@@ -30,13 +39,22 @@ router.get('/github', passport.authenticate('github', { scope: ['user:email'] })
 
 router.get('/github/callback', passport.authenticate('github', { session: false }), (req, res) => {
   const token = generateToken(req.user);
-  // Set JWT token as HTTP-only cookie
-  res.cookie('auth_token', token, {
+  // Extract domain from CLIENT_URL if needed
+  // For localhost development, don't set domain at all
+  let cookieOptions = {
     httpOnly: true,
-    secure: env.NODE_ENV === 'production', // Use secure cookies in production
-    sameSite: 'strict',         // Helps prevent CSRF attacks
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days - match token expiration
-  });
+    secure: env.NODE_ENV === 'production', 
+    sameSite: 'none',
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    path: '/' // Set path to root
+  };
+  
+  // Only add domain in production for cross-subdomain support
+  if (env.NODE_ENV === 'production' && env.CLIENT_URL) {``
+    cookieOptions.domain = env.CLIENT_URL;
+  }
+  // Set the cookie with fixed options
+  res.cookie('auth_token', token, cookieOptions);
   res.redirect(`${env.CLIENT_URL}/auth/success?source=github&token=${token}`);
 });
 
