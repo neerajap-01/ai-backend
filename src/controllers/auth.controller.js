@@ -142,7 +142,15 @@ const loginController = async (req, res, next) => {
       
       // Only add domain in production for cross-subdomain support
       if (env.NODE_ENV === 'production' && env.CLIENT_URL) {
-        cookieOptions.domain = env.CLIENT_URL;
+        try {
+          // Extract domain from CLIENT_URL
+          const url = new URL(env.CLIENT_URL);
+          cookieOptions.domain = url.hostname;
+          console.log("Using cookie domain:", cookieOptions.domain);
+        } catch (e) {
+          console.log("Invalid CLIENT_URL format:", e.message);
+          // Continue without setting domain
+        }
       }
       // Set the cookie with fixed options
       res.cookie('auth_token', token, cookieOptions);
