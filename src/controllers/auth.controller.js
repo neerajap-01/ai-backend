@@ -95,72 +95,76 @@ const verifyEmailController = async (req, res) => {
 }
 
 const loginController = async (req, res, next) => {
-  passport.authenticate('local', { session: false }, async (err, user, info) => {
-    if (err) {
-      return res.status(500).json({
-        statusCode: 500,
-        error: 1,
-        message: err.message,
-        data: null
-      });
-    }
-    
-    if (!user) {
-      return res.status(401).json({
-        statusCode: 401,
-        error: 1,
-        message: info?.message || 'Authentication failed',
-        data: null
-      });
-    }
-    
-    if (!user.isVerified && user.authType === 'email') {  // Changed verified to isVerified and authProvider to authType
-      return res.status(401).json({
-        statusCode: 401,
-        error: 1,
-        message: 'Please verify your email first',
-        data: null
-      });
-    }
-    
-    // // Update last login time
-    // user.lastLogin = new Date();
-    // await user.save();
-    
-    const token = generateToken(user);
-
-    // Extract domain from CLIENT_URL if needed
-    // For localhost development, don't set domain at all
-    let cookieOptions = {
-      httpOnly: true,
-      secure: env.NODE_ENV === 'production', 
-      sameSite: 'none',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      path: '/' // Set path to root
-    };
-    
-    // Only add domain in production for cross-subdomain support
-    if (env.NODE_ENV === 'production' && env.CLIENT_URL) {``
-      cookieOptions.domain = env.CLIENT_URL;
-    }
-    // Set the cookie with fixed options
-    res.cookie('auth_token', token, cookieOptions);
-    return res.json({
-      statusCode: 200,
-      error: 0,
-      message: 'Login successful',
-      data: {
-        token,
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          avatar: user.avatar,
-          role: user.role || 'user'
-        }
+  try {
+    passport.authenticate('local', { session: false }, async (err, user, info) => {
+      if (err) {
+        return res.status(500).json({
+          statusCode: 500,
+          error: 1,
+          message: err.message,
+          data: null
+        });
       }
-    });
-  })(req, res, next);
+      
+      if (!user) {
+        return res.status(401).json({
+          statusCode: 401,
+          error: 1,
+          message: info?.message || 'Authentication failed',
+          data: null
+        });
+      }
+      
+      if (!user.isVerified && user.authType === 'email') {  // Changed verified to isVerified and authProvider to authType
+        return res.status(401).json({
+          statusCode: 401,
+          error: 1,
+          message: 'Please verify your email first',
+          data: null
+        });
+      }
+      
+      // // Update last login time
+      // user.lastLogin = new Date();
+      // await user.save();
+      
+      const token = generateToken(user);
+  
+      // Extract domain from CLIENT_URL if needed
+      // For localhost development, don't set domain at all
+      let cookieOptions = {
+        httpOnly: true,
+        secure: env.NODE_ENV === 'production', 
+        sameSite: 'none',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        path: '/' // Set path to root
+      };
+      
+      // Only add domain in production for cross-subdomain support
+      if (env.NODE_ENV === 'production' && env.CLIENT_URL) {
+        cookieOptions.domain = env.CLIENT_URL;
+      }
+      // Set the cookie with fixed options
+      res.cookie('auth_token', token, cookieOptions);
+      return res.json({
+        statusCode: 200,
+        error: 0,
+        message: 'Login successful',
+        data: {
+          token,
+          user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            avatar: user.avatar,
+            role: user.role || 'user'
+          }
+        }
+      });
+    })(req, res, next);
+  } catch (error) {
+    console.log("Error in loginController:", error);
+  }
 };
 
 const forgotPasswordController = async (req, res) => {
