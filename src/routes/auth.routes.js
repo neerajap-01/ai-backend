@@ -26,8 +26,14 @@ router.get('/google/callback', passport.authenticate('google', {
   };
   
   // Only add domain in production for cross-subdomain support
-  if (env.NODE_ENV === 'production' && env.CLIENT_URL) {``
-    cookieOptions.domain = env.CLIENT_URL;
+  if (env.NODE_ENV === 'production' && env.CLIENT_URL) {
+    // Extract just the domain part from CLIENT_URL
+    try {
+      const url = new URL(env.CLIENT_URL);
+      cookieOptions.domain = url.hostname;
+    } catch (err) {
+      console.error('Invalid CLIENT_URL format', err);
+    }
   }
   // Set the cookie with fixed options
   res.cookie('auth_token', token, cookieOptions);
@@ -50,8 +56,14 @@ router.get('/github/callback', passport.authenticate('github', { session: false 
   };
   
   // Only add domain in production for cross-subdomain support
-  if (env.NODE_ENV === 'production' && env.CLIENT_URL) {``
-    cookieOptions.domain = env.CLIENT_URL;
+  if (env.NODE_ENV === 'production' && env.CLIENT_URL) {
+    // Extract just the domain part from CLIENT_URL
+    try {
+      const url = new URL(env.CLIENT_URL);
+      cookieOptions.domain = url.hostname;
+    } catch (err) {
+      console.error('Invalid CLIENT_URL format', err);
+    }
   }
   // Set the cookie with fixed options
   res.cookie('auth_token', token, cookieOptions);
