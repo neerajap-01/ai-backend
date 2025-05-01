@@ -38,6 +38,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
+    "google-auth-library": "^9.15.1",
     "jsonwebtoken": "^9.0.2",
     "langchain": "^0.3.19",
     "mongoose": "^8.13.1",

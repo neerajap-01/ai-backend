@@ -31,6 +31,8 @@ const projectEnv = {
   GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
   GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
   APP_NAME: process.env.APP_NAME,
+  AINMAIL_GOOGLE_CLIENT_ID: process.env.AINMAIL_GOOGLE_CLIENT_ID,
+  AINMAIL_GOOGLE_CLIENT_SECRET: process.env.AINMAIL_GOOGLE_CLIENT_SECRET,
 }
 
 export const env = projectEnv;
