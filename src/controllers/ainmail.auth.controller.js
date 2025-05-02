@@ -1,23 +1,11 @@
 import { OAuth2Client } from 'google-auth-library';
 import { env } from '../config/keys.js';
-
+import UserModel from '../models/user.model.js';
 
 const client = new OAuth2Client(
   env.AINMAIL_GOOGLE_CLIENT_ID,
   env.AINMAIL_GOOGLE_CLIENT_SECRET,
 );
-
-/**
- * Generate a deterministic user ID from email
- * @param {string} email - User's email address
- * @returns {string} - Hashed user ID
- */
-const generateUserId = (email) => {
-  return crypto
-    .createHash('sha256')
-    .update(email + 'env.USER_ID_SECRET')
-    .digest('hex');
-};
 
 const validateToken = async (req, res) => {
   try {
@@ -32,30 +20,52 @@ const validateToken = async (req, res) => {
     });
 
     // Get Gmail-specific data if needed
-    const gmailResponse = await client.request({
+    await client.request({
       url: 'https://gmail.googleapis.com/gmail/v1/users/me/profile',
     });
     
-    // Generate a server-side user ID
-    // const userId = generateUserId(userInfoResponse.data.email);
-    
-    // You could store user info in your database here
-    
-    // Return user data to client
+    // Make mongoDB call to check if user exists
+    const user = await UserModel.findOne({ email: userInfoResponse.data.email });
+    const userData = {
+      id: '',
+      email: '',
+      name: '',
+      avatar: '',
+      tokens: {
+        access_token: token,
+        // Note: refresh tokens require additional setup with server-side flow
+        expiry_date: Date.now() + 3600000 // 1 hour from now
+      }
+    }
+    if (!user) {
+      // If user doesn't exist, create a new user
+      const newUser = new UserModel({
+        email: userInfoResponse.data.email,
+        name: userInfoResponse.data.name,
+        profilePicture: userInfoResponse.data.picture,
+        authType: 'google',
+        googleId: userInfoResponse.data.sub,
+        isVerified: true,
+      });
+
+      // Save the new user to the database
+      const data = await newUser.save();
+      
+      userData.id = data._id;
+      userData.email = data.email;
+      userData.name = data.name;
+      userData.avatar = data.profilePicture;
+    } else {
+      userData.id = user._id;
+      userData.email = user.email;
+      userData.name = user.name;
+      userData.avatar = user.profilePicture;
+    }
+
     return res.json({
       ok: true,
       statusCode: 200,
-      data: {
-        id: 1,
-        email: userInfoResponse.data.email,
-        name: userInfoResponse.data.name,
-        avatar: userInfoResponse.data.picture,
-        tokens: {
-          access_token: token,
-          // Note: refresh tokens require additional setup with server-side flow
-          expiry_date: Date.now() + 3600000 // 1 hour from now
-        }
-      }
+      data: userData
     });
   } catch (error) {
     console.error('Token validation error:', error);
@@ -65,7 +75,7 @@ const validateToken = async (req, res) => {
 
 const refreshToken = async (req, res) => {
   try {
-    const { refresh_token, account_id } = req.body;
+    const { refresh_token } = req.body;
     
     if (!refresh_token) {
       return res.status(400).json({ error: 'Refresh token required' });
@@ -78,8 +88,13 @@ const refreshToken = async (req, res) => {
     const { credentials } = await client.refreshAccessToken();
     
     return res.json({
-      access_token: credentials.access_token,
-      expiry_date: credentials.expiry_date
+      ok: true,
+      statusCode: 200,
+      data: {
+        access_token: credentials.access_token,
+        refresh_token: credentials.refresh_token,
+        expiry_date: credentials.expiry_date
+      }
     });
   } catch (error) {
     console.error('Token refresh error:', error);
