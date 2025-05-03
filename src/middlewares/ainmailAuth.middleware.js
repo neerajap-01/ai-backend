@@ -24,12 +24,22 @@ const checkAinmailAuth = (options = { allowRefresh: false }) => async (req, res,
     // Regular token validation for other routes
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Authentication required' });
+      return res.status(401).json({ 
+        ok: false,
+        statusCode: 401,
+        error: 'Authentication required',
+        data: null,
+      });
     }
 
     const token = authHeader.split(' ')[1];
     if (!token) {
-      return res.status(401).json({ error: 'Invalid token format' });
+      return res.status(401).json({ 
+        ok: false,
+        statusCode: 401,
+        error: 'Invalid token format',
+        data: null,
+      });
     }
 
     // Verify the token
@@ -55,13 +65,21 @@ const checkAinmailAuth = (options = { allowRefresh: false }) => async (req, res,
     } catch (tokenError) {
       console.error('Token verification failed:', tokenError);
       return res.status(401).json({ 
+        ok: false,
+        statusCode: 401,
         error: 'Invalid or expired token',
-        message: tokenError.message
+        message: tokenError.message,
+        data: null,
       });
     }
   } catch (error) {
     console.error('Authentication error:', error);
-    return res.status(500).json({ error: 'Authentication error' });
+    return res.status(500).json({ 
+      ok: false,
+      statusCode: 500,
+      error: 'Authentication error',
+      data: null, 
+    });
   }
 };
 
